@@ -1,11 +1,11 @@
-# PBKK Minggu 7
+# PBKK Minggu 10
 
 ## How to run
 
 1. Clone repository
 ```
-git clone https://github.com/Haaqill/PBKK-minggu7.git
-cd PBKK-minggu7
+git clone https://github.com/Haaqill/PBKK-minggu10.git
+cd PBKK-minggu10
 ```
 
 2. Install dependencies
