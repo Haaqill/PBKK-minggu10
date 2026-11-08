@@ -7,11 +7,11 @@ use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\ProjectController;
 use Illuminate\Support\Facades\Route;
 
-if (app()->environment('local')) {
+if (app()->environment('local', 'testing')) {
     Route::post('/_local/demo-login', [
         DemoLoginController::class,
         'login',
-    ])->middleware('throttle:6,1')
+    ])->middleware('throttle:60,1')
       ->name('local.demo-login');
 }
 
@@ -39,7 +39,7 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-    Route::middleware('cek.peran:mahasiswa,dosen,asdos')->group(function () {
+    Route::middleware('cek.peran:Admin,Staf,mahasiswa,dosen,asdos')->group(function () {
         Route::get('/project/recycle-bin', [ProjectController::class, 'recycleBin'])
             ->name('project.recycle-bin');
 
@@ -50,7 +50,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('project', ProjectController::class);
     });
 
-    Route::middleware('cek.peran:dosen,asdos')
+    Route::middleware(['auth', 'permission:delete-projects'])
         ->post('/project/bulk-delete', [ProjectController::class, 'bulkDestroy'])
         ->name('project.bulk-destroy');
 
@@ -78,7 +78,7 @@ Route::middleware('auth')->group(function () {
                 ->name('proposal.destroy');
         });
 
-    Route::middleware('cek.peran:dosen,asdos')
+    Route::middleware(['auth', 'verified', 'cek.peran:Admin,Staf,dosen,asdos'])
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
@@ -88,7 +88,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/proposal', [ProposalController::class, 'index'])
                 ->name('proposal.index');
 
-            Route::middleware('cek.peran:dosen')->group(function () {
+            Route::middleware('permission:delete-projects')->group(function () {
                 Route::get('/nilai', [AdminController::class, 'nilai'])
                     ->name('nilai');
             });
@@ -96,6 +96,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/proposal/{proposal}', [ProposalController::class, 'show'])
         ->name('proposal.show');
+
+    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [\App\Http\Controllers\ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 require __DIR__.'/auth.php';

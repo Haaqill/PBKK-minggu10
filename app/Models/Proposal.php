@@ -11,6 +11,7 @@ class Proposal extends Model
         'judul',
         'deskripsi',
         'status',
+        'user_id',
     ];
 
     public function mahasiswa(): BelongsTo

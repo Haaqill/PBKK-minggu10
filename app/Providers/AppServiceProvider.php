@@ -28,25 +28,44 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        
+        Gate::before(function ($user, $ability) {
+            try {
+                if ($user->hasRole('Admin') || $user->role === 'Admin' || $user->role === 'dosen') {
+                    return true;
+                }
+            } catch (\Throwable $e) {
+                if ($user->role === 'Admin' || $user->role === 'dosen') {
+                    return true;
+                }
+            }
+        });
+
+        Gate::define('view-dashboard', function ($user) {
+            return $user->hasAnyRole(['Admin', 'Staf', 'dosen', 'asdos']) || in_array($user->role, ['Admin', 'Staf', 'dosen', 'asdos'], true);
+        });
+
+        Gate::define('delete-projects', function ($user) {
+            return $user->hasRole('Admin') || in_array($user->role, ['Admin', 'dosen'], true);
+        });
+
         Gate::define('akses-halaman-dosen', function ($user) {
-            return $user->role === 'dosen';
+            return $user->role === 'dosen' || $user->hasRole('Admin') || $user->role === 'Admin';
         });
 
         Gate::define('lihat-proposal', function ($user) {
             return in_array(
                 $user->role,
-                ['dosen', 'asdos'],
+                ['Admin', 'Staf', 'dosen', 'asdos'],
                 true
-            );
+            ) || $user->hasAnyRole(['Admin', 'Staf', 'dosen', 'asdos']);
         });
 
         Gate::define('input-nilai', function (User $user) {
-            return $user->role === 'dosen';
+            return $user->role === 'dosen' || $user->hasRole('Admin') || $user->role === 'Admin';
         });
 
         Gate::define('setujui-proposal', function ($user) {
-            return $user->role === 'dosen';
+            return $user->role === 'dosen' || $user->hasRole('Admin') || $user->role === 'Admin';
         });
 
         Gate::policy(Proposal::class, ProposalPolicy::class);

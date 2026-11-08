@@ -11,19 +11,24 @@ class DemoLoginController extends Controller
 {
     public function login(Request $request)
     {
-        abort_unless(app()->environment('local'), 404);
+        abort_unless(app()->environment('local', 'testing'), 404);
 
         $validated = $request->validate([
-            'role' => ['required', 'in:dosen,asdos,mahasiswa'],
+            'role' => ['required', 'in:admin,staf,Admin,Staf,dosen,asdos,mahasiswa'],
         ]);
 
+        $normalizedRole = strtolower($validated['role']);
+
+        $email = match ($normalizedRole) {
+            'admin' => 'admin@admin.com',
+            'staf' => 'staf@staf.com',
+            'dosen' => 'dosen@gmail.com',
+            'asdos' => 'asdos@gmail.com',
+            'mahasiswa' => 'hanif@gmail.com',
+        };
+
         $user = User::query()
-            ->where('email', match ($validated['role']) {
-                'dosen' => 'dosen@gmail.com',
-                'asdos' => 'asdos@gmail.com',
-                'mahasiswa' => 'hanif@gmail.com',
-            })
-            ->where('role', $validated['role'])
+            ->where('email', $email)
             ->firstOrFail();
 
         Auth::login($user);

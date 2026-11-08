@@ -9,12 +9,14 @@ class ProjectPolicy
 {
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, ['mahasiswa', 'dosen', 'asdos'], true);
+        return $user->hasAnyRole(['Admin', 'Staf', 'dosen', 'asdos', 'mahasiswa'])
+            || in_array($user->role, ['Admin', 'Staf', 'dosen', 'asdos', 'mahasiswa'], true)
+            || $user->can('view-projects');
     }
 
     public function view(User $user, Project $project): bool
     {
-        return $this->isAdministrator($user) || $project->user_id === $user->id;
+        return $this->isAdministratorOrStaff($user) || $project->user_id === $user->id;
     }
 
     public function create(User $user): bool
@@ -27,23 +29,36 @@ class ProjectPolicy
         return $this->view($user, $project);
     }
 
+    /**
+     * Hak Eksklusif: Hanya peran Admin murni yang berhak menghapus data (atau mahasiswa untuk proyek miliknya sendiri)
+     */
     public function delete(User $user, Project $project): bool
     {
-        return $this->view($user, $project);
+        return $user->hasRole('Admin') 
+            || $user->can('delete-projects')
+            || in_array($user->role, ['Admin', 'dosen'], true)
+            || ($user->role === 'mahasiswa' && $project->user_id === $user->id);
     }
 
+    /**
+     * Hak Eksklusif: Hanya peran Admin murni yang berhak memulihkan data
+     */
     public function restore(User $user, Project $project): bool
     {
-        return $this->view($user, $project);
+        return $this->delete($user, $project);
     }
 
+    /**
+     * Hak Eksklusif: Hanya peran Admin murni yang berhak melakukan penghapusan massal
+     */
     public function bulkDeleteAny(User $user): bool
     {
-        return $this->isAdministrator($user);
+        return $this->delete($user, new Project());
     }
 
-    private function isAdministrator(User $user): bool
+    private function isAdministratorOrStaff(User $user): bool
     {
-        return in_array($user->role, ['dosen', 'asdos'], true);
+        return $user->hasAnyRole(['Admin', 'Staf', 'dosen', 'asdos'])
+            || in_array($user->role, ['Admin', 'Staf', 'dosen', 'asdos'], true);
     }
 }

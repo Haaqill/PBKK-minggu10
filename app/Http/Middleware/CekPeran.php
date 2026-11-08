@@ -17,7 +17,14 @@ class CekPeran
             return redirect()->route('login');
         }
 
-        if (!in_array($request->user()->role, $roles, true)) {
+        $hasSpatieRole = false;
+        try {
+            $hasSpatieRole = $request->user()->hasAnyRole($roles);
+        } catch (\Throwable $e) {
+            // Ignore if role check fails
+        }
+
+        if (!in_array($request->user()->role, $roles, true) && !$hasSpatieRole) {
             abort(403, 'Anda tidak memiliki izin untuk mengakses halaman ini.');
         }
 

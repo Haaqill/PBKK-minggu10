@@ -21,6 +21,10 @@ class ProposalController extends Controller
             ->latest()
             ->get();
 
+        if ($request->routeIs('admin.*') || $request->is('admin*')) {
+            return view('admin.proposal.index', compact('proposals'));
+        }
+
         return view('proposal.index', compact('proposals'));
     }
 

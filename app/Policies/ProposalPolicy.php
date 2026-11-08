@@ -9,16 +9,17 @@ class ProposalPolicy
 {
     public function viewAny(User $user): bool
     {
-        return in_array(
-            $user->role,
-            ['dosen', 'asdos', 'mahasiswa'],
-            true
-        );
+        return $user->hasAnyRole(['Admin', 'Staf', 'dosen', 'asdos', 'mahasiswa'])
+            || in_array(
+                $user->role,
+                ['Admin', 'Staf', 'dosen', 'asdos', 'mahasiswa'],
+                true
+            );
     }
 
     public function view(User $user, Proposal $proposal): bool
     {
-        if (in_array($user->role, ['dosen', 'asdos'], true)) {
+        if ($user->hasAnyRole(['Admin', 'Staf', 'dosen', 'asdos']) || in_array($user->role, ['Admin', 'Staf', 'dosen', 'asdos'], true)) {
             return true;
         }
 

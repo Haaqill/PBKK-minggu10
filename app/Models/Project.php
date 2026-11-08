@@ -18,6 +18,7 @@ class Project extends Model
         'deskripsi',
         'tema_agent',
         'api_key_secure',
+        'user_id',
     ];
 
     protected function casts(): array
